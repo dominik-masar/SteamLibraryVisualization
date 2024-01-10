@@ -1,0 +1,187 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+*, *:before, *:after {box-sizing:border-box;}
+body{
+	background:#767a83;
+	/* margin-top:50px; */
+	font: 15px "Trebuchet MS";
+	/* color:#c0c0c0; */
+  color:white;
+}
+
+
+#button_div{
+    width:100%;
+    height:10vh;
+    border:1px solid green;
+    float:left;
+}
+
+#barchart_div{
+  width:50%;
+  height:90vh;
+  font-size: calc(2vw + 2vh);
+  float:left;
+  overflow-y: scroll;
+}
+
+#detail_div{
+  width:49%;
+  height:90vh;
+  border:1px solid blue;
+  float:left;
+}
+
+.headline, .subline{
+  display: block;
+  margin-top: 0.67em;
+  margin-bottom: 0.67em;
+  fill: white;
+  font-family: "Open Sans", sans-serif;
+  font-size: 25px;
+  letter-spacing: 2px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.headline{
+  font-weight: bold;
+}
+
+.subline{
+  font-size: 50%;
+  font-weight: thin;
+}
+
+.label{
+  font-family: 'PT Sans',sans-serif;
+  opacity: 1;
+  font-size: 30%;
+}
+
+/* CSS */
+.button-54 {
+  font-family: "Open Sans", sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-decoration: none;
+  text-transform: uppercase;
+  color: #000;
+  cursor: pointer;
+  border: 3px solid;
+  padding: 0.25em 0.5em;
+  box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.button-54:active {
+  box-shadow: 0px 0px 0px 0px;
+  top: 5px;
+  left: 5px;
+}
+
+.button_normal {
+  font-family: "Open Sans", sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-decoration: none;
+  text-transform: uppercase;
+  color: #000;
+  cursor: pointer;
+  border: 3px solid;
+  padding: 0.25em 0.5em;
+  box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.button_clicked {
+  font-family: "Open Sans", sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-decoration: none;
+  text-transform: uppercase;
+  color: #000;
+  cursor: pointer;
+  border: 3px solid;
+  padding: 0.25em 0.5em;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  box-shadow: 0px 0px 0px 0px;
+  top: 5px;
+  left: 5px;
+}
+
+@media (min-width: 768px) {
+  .button-54 {
+    padding: 0.25em 0.75em;
+  }
+
+  .button_normal {
+    padding: 0.25em 0.75em;
+  }
+
+  .button_clicked {
+    padding: 0.25em 0.75em;
+  }
+}
+
+.range {
+  position: relative;
+  background-color: #333;
+  width: 300px;
+  height: 30px;
+  transform: skew(30deg);
+  font-family: 'Orbitron', monospace;
+  
+  &:before {
+    --width: calc(var(--p) * 1%);
+    
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background-color: #F3E600;
+    z-index: 0;
+    animation: load .5s forwards linear;
+  }
+  
+  &:after {
+    counter-reset: progress var(--p);
+    content: counter(progress) '%';
+    color: #000;
+    position: absolute;
+    left: 5%;
+    top: 50%;
+    transform: translateY(-50%) skewX(-30deg);
+    z-index: 1;
+  }
+}
+
+@keyframes load {
+  to {
+    width: var(--width);
+  }
+}
+
+.range__label {
+  transform: skew(-30deg) translateY(-100%);
+  line-height: 1.5;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.detail__label {
+  line-height: 1.5;
+  font-size: 20px;
+  font-weight: bold;
+  font-family: 'Orbitron', monospace;
+}
