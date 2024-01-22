@@ -23,6 +23,7 @@ var tableArea;
 //variables for selection
 var selectedGameId;
 var chosenGameData;
+var prevChosenGameData;
 
 //color scale
 var myColorScale;
@@ -72,6 +73,7 @@ function init() {
 
   //init selections
   selectedGameId = 23;
+  prevChosenGameData = data.find(game => game.id === selectedGameId);
   chosenGameData = data.find(game => game.id === selectedGameId);
     
   //d3 canvases for svg elements
@@ -330,11 +332,12 @@ function gameHours(barchart) {
   // Sort the data by hours played
   var sortedData = data.slice().sort((a, b) => b.hours - a.hours);
   sortedData.map((x, i) => {x.index = i; return x});
+  sortedData = sortedData.filter(x => x.hours > 20);
   console.log(sortedData);
 
   // Create a linear scale for the x-axis
   const xScale = d3.scaleLinear()
-    .domain(d3.range(0, sortedData.length))
+    .domain([0, sortedData.length - 1])
     .range([0, barchart.offsetWidth]);
   
   // Create a linear scale for the y-axis
@@ -351,7 +354,7 @@ function gameHours(barchart) {
   // Create a linear gradient for the area
   const color = d3.scaleLinear()
     .domain([0, d3.max(sortedData, (d) => d.hours)])
-    .range(['blue', 'lightblue']);
+    .range(['black', 'yellow']);
 
   // Create a linear gradient for the highlighted game
   const highlightColor = d3.scaleLinear()
@@ -362,7 +365,7 @@ function gameHours(barchart) {
   const highlightArea = d3.area()
     .x(d => xScale(d.index))
     .y0(yScale(0))
-    .y1(d => yScale(chosenGameData.hours));
+    .y1(0);
 
   // Create the line object
   const line = d3.line()
@@ -372,24 +375,69 @@ function gameHours(barchart) {
   // Wait for the SVG element to be created
   var svg = d3.select("#barchart").append("svg")
     .attr("width", barchart.offsetWidth)
-    .attr("height", barchart.offsetHeight);
+    .attr("height", barchart.offsetHeight)
 
-  // Create the line chart
-  svg.append('path')
-    .attr('class', 'line')
-    .attr('d', line(sortedData));
+  // Create a linear gradient
+  var gradient = svg.append("defs")
+    .append("linearGradient")
+    .attr("id", "areaGradient");
+  
+  // Assuming your color scale is defined as 'color'
+  gradient.append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", color(sortedData[0].hours));
+  
+  gradient.append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", color(sortedData[sortedData.length - 1].hours));
 
   // Create a shaded area under the line for each game
   svg.append('path')
     .attr('class', 'area')
     .attr('d', areaGenerator(sortedData))
-    .style('fill', () => color(sortedData[0].hours));
+    .style('fill', 'url(#areaGradient)');
+
+  var xAxis = svg.append('g')
+    .attr('class', 'grid x-grid')
+    .attr('id', 'xGrid');
+
+  xAxis.append('line')
+    .attr('x1', '0')
+    .attr('x2', '0')
+    .attr('y1', '0')
+    .attr('y2', barchart.offsetHeight)
+    .attr('stroke-width', '2')
+    .attr('stroke', 'black');
+
+  var maxHours = d3.max(sortedData, (d) => d.hours);
+
+  for (let i = 0; i < 5; i++) 
+  {
+    svg.append('text')
+      .attr('x', '')
+      .attr('y', '')
+  }
+
 
   // Create the highlighted area
   svg.append('path')
     .attr('class', 'highlight-area')
-    .attr('d', highlightArea([chosenGameData]))
-    .style('fill', d => highlightColor(chosenGameData.hours));
+    .attr('d', highlightArea([prevChosenGameData]))
+    .style('fill', d => highlightColor(prevChosenGameData.hours))
+    .attr('stroke-width', '3')
+    .attr('stroke', 'blue')
+    .transition()
+      .duration(1000)
+      .attr('d', highlightArea([chosenGameData]))
+
+  // Create the line chart
+  var line_chart = svg.append('path')
+    .attr('class', 'line')
+    .attr('d', line(sortedData))
+    .style('fill', '#767a83');
+
+  var val = line_chart.attr("d");
+  line_chart.attr("d", `${val}L${barchart.offsetWidth},0`)
 }
 
 /*----------------------
@@ -422,6 +470,7 @@ function mapClick(region) {
 function gameClick(game) {
   console.log(game.id)
   selectedGameId = game.id;
+  prevChosenGameData = chosenGameData;
   chosenGameData = game;
 
   drawDetailArea();

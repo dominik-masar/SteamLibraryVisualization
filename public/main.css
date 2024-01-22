@@ -185,3 +185,24 @@ body{
   font-weight: bold;
   font-family: 'Orbitron', monospace;
 }
+
+.graph .labels.y-labels {
+  text-anchor: end;
+}
+
+.graph .grid {
+  stroke: #000000;
+  stroke-dasharray: 0;
+  stroke-width: 1;
+}
+
+.labels {
+  font-size: 13px;
+}
+
+.label-title {
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 12px;
+  fill: black;
+}
