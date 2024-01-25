@@ -7,13 +7,6 @@ const maxRowLength = 25;
 //variable containing reference to data
 var data;
 
-const By = {
-  Name: "name",
-  Playtime: "playtime",
-  Userscore: "userscore",
-  Popularity: "popularity"
-};
-
 //D3.js canvases
 var buttonArea;
 var recordArea;
@@ -149,23 +142,15 @@ function init() {
             id: gameId++,
           })
         );
+
+        detailArea.selectAll("*").remove();
+        resetButtons();
+        visualization();
       };
 
         // Read the file as text
         reader.readAsText(file);
     }
-  }
-}
-
-function processData(d) {
-  return {
-    name: d["game"],
-    hours: +d["hours"],
-    userscore: +d["userscore"],
-    popularity: +d["userscore_count"],
-    release_date: d["release_date"],
-    id: gameId++,
-    //multiplayer: d["multiplayer any"],
   }
 }
 
@@ -270,6 +255,16 @@ function gameHours(barchart) {
   
   sortedData = sortedData.filter(x => x.hours > 5);
   //sortedData = sortedData.filter(x => x.hours < 50);
+
+  var highlight = true;
+  if (!sortedData.some(obj => obj.name === chosenGameData.name)) {
+    highlight = false;
+  }
+
+  if (highlight && !sortedData.some(obj => obj.name === prevChosenGameData.name)) {
+    prevChosenGameData = chosenGameData;
+  }
+
   sortedData.map((x, i) => {x.index = i; return x});
   console.log(sortedData);
 
@@ -336,16 +331,18 @@ function gameHours(barchart) {
     .style('fill', 'url(#areaGradient)');
 
   // Create the highlighted area
-  svg.append('path')
-    .attr('class', 'highlight-area')
-    .attr('d', highlightArea([prevChosenGameData]))
-    .style('fill', d => highlightColor(prevChosenGameData.hours))
-    .attr('stroke-width', '3')
-    .attr('stroke', 'blue')
-    .transition()
-      .duration(1000)
-      .attr('d', highlightArea([chosenGameData]))
-
+  if (highlight) {
+    svg.append('path')
+      .attr('class', 'highlight-area')
+      .attr('d', highlightArea([prevChosenGameData]))
+      .style('fill', d => highlightColor(prevChosenGameData.hours))
+      .attr('stroke-width', '3')
+      .attr('stroke', 'blue')
+      .transition()
+        .duration(1000)
+        .attr('d', highlightArea([chosenGameData]))
+  }
+  
   // Create the line chart
   var line_chart = svg.append('path')
     .attr('class', 'line')
@@ -368,17 +365,20 @@ function gameClick(game) {
 function buttonClick(sortMethod, buttonId) {
   let button = d3.select(`#${buttonId}`);
   if (button.classed("button_clicked")) {
-    button.classed("button_clicked", false);
-    button.classed("button_normal", true);
-    sortData("name");
+    resetButtons();
   } 
   else {
-    buttonArea.selectAll("div > *").classed("button_clicked", false);
-    buttonArea.selectAll("div > *").classed("button_normal", true);
+    resetButtons();
     button.classed("button_normal", false);
     button.classed("button_clicked", true);
     sortData(sortMethod);
   }
+}
+
+function resetButtons() {
+  buttonArea.selectAll("div > *").classed("button_clicked", false);
+  buttonArea.selectAll("div > *").classed("button_normal", true);
+  sortData("name");
 }
 
 /*----------------------
