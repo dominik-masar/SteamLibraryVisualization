@@ -112,6 +112,25 @@ function drawButtonArea() {
 }
 
 function drawInputArea() {
+  var importDiv = inputArea.append("div")
+    .attr("class", "button_div")
+    .attr("id", "importTip")
+    .style("float", "right")
+    .style("width", "auto")
+    .style("z-index", "1")
+    .style("position", "relative");
+
+  importDiv.append("span")
+    .text("Export your data on ");
+
+  importDiv.append("a")
+    .attr("href", "https://www.lorenzostanco.com/lab/steam/")  // Replace with your desired URL
+    .attr("target", "_blank")  // Open the link in a new tab
+    .text("this web");
+
+  importDiv.append("span")
+    .text(" to CSV (use comma delimeter).");
+
   var fileInputContainer = inputArea.append("div")
     .style("box-shadow", "1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px")
     .style("border", "3px solid")
@@ -121,6 +140,7 @@ function drawInputArea() {
     .style("float", "right")
     .style("z-index", "2")
     .style("display", "inline-block")
+    .style("clear", "right") // Add this line to clear the right side
     .style("position", "relative");
 
   // Add the file input to the container
@@ -133,25 +153,6 @@ function drawInputArea() {
     .style("margin", "0")  // Reset margin
     .style("padding", "0")  // Reset padding
     .on("change", handleFile);
-
-  var importDiv = inputArea.append("div")
-    .attr("class", "button_div")
-    .attr("id", "importTip")
-    .style("float", "right")
-    .style("width", "auto")
-    .style("z-index", "1")
-    .style("position", "relative")
-
-  importDiv.append("span")
-    .text("Export your data on ");
-
-  importDiv.append("a")
-    .attr("href", "https://www.lorenzostanco.com/lab/steam/")  // Replace with your desired URL
-    .attr("target", "_blank")  // Open the link in a new tab
-    .text("this web");
-
-  importDiv.append("span")
-    .text(" to CSV (use comma delimeter).");
 }
 
 /*----------------------
