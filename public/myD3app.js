@@ -1,5 +1,3 @@
-import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
-
 //constants
 const maxHeadlineLength = 30;
 const maxRowLength = 25;
@@ -80,27 +78,31 @@ function init() {
 }
 
 function drawButtonArea() {
+  var importDiv = buttonArea.append("div")
+    .attr("class", "button_div")
+    .attr("id", "importTip")
+    .style("float", "left")
+    .style("width", "auto")
+    .style("position", "relative");
+
+  importDiv.append("span")
+    .text("Sort by: ");
+
   buttonArea.append("button")
     .attr("class", "button_normal")
     .attr("id", "NameB")
-    //.style("transform", `scale(${1.5})`)
-    //.style("transform-origin", "top left")
     .text("Name")
     .on("click", function () { buttonClick("name", "NameB"); });
 
   buttonArea.append("button")
     .attr("class", "button_normal")
     .attr("id", "PlaytimeB")
-    //.style("transform", `scale(${1.5})`)
-    //.style("transform-origin", "top left")
     .text("Playtime")
     .on("click", function () { buttonClick("hours", "PlaytimeB"); });
 
   buttonArea.append("button")
     .attr("class", "button_normal")
     .attr("id", "UserscoreB")
-    //.style("transform", `scale(${1.5})`)
-    //.style("transform-origin", "top left")
     .text("Userscore")
     .on("click", function () { buttonClick("userscore", "UserscoreB"); });
 
@@ -129,7 +131,7 @@ function drawInputArea() {
     .text("this web");
 
   importDiv.append("span")
-    .text(" to CSV (use comma delimeter).");
+    .text(" to CSV (use comma delimeter)");
 
   var fileInputContainer = inputArea.append("div")
     .style("box-shadow", "1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px")
@@ -218,8 +220,11 @@ function drawDetailArea() {
     .style("font-size", "15px")
     .text(`${formatNumber(game.hours.toFixed(2))} hours`)
 
+  var hours_chart_container = detailArea.append("div")
+    .style("height", "20vh")
+
   // TODO axis
-  detailArea.append("div")
+  hours_chart_container.append("div")
     .attr("id", "game_hours_axis")
     .style("margin-top", "1em")
     .style("margin-bottom", "2em")
@@ -228,7 +233,7 @@ function drawDetailArea() {
     .style("float", "left");
 
   // Game Hours Chart
-  detailArea.append("div")
+  hours_chart_container.append("div")
     .attr("id", "game_hours_barchart")
     .style("margin-top", "1em")
     .style("margin-bottom", "2em")
@@ -237,6 +242,44 @@ function drawDetailArea() {
     .style("float", "left");
 
   gameHoursChart(game_hours_barchart);
+
+  detailArea.append("div")
+    .attr("id", "slider-range")
+    .style("margin-top", "2em")
+    .style("margin-right", "auto")
+    .style("margin-left", "auto")
+    .style("height", "auto")
+    .style("width", "80%")
+    .style("position", "relative")
+    .style("float", "left");
+
+  // Define the slider
+  const sliderRange = d3.sliderBottom()
+    .min(0)
+    .max(500)
+    .width(detailArea.node().offsetWidth * 0.83)
+    .tickFormat((d) => d.toFixed(0))
+    .ticks(5)
+    .default([100, 200])
+    .fill('yellow');
+
+
+  sliderRange.on('onchange', val => {
+    // TODO:
+    // assign global variables
+    // delete old svg
+    // call function to create new svg
+  });
+
+  // Add the slider to the DOM
+  const gRange = d3.select('#slider-range')
+    .append('svg')
+    .attr('width', detailArea.node().offsetWidth * 0.9)
+    .attr('height', 100)
+    .append('g')
+    .attr('transform', 'translate(20,20)');
+
+  gRange.call(sliderRange);
 
   // Popularity Label
   detailArea.append("div")
@@ -251,8 +294,10 @@ function drawDetailArea() {
     .style("font-size", "15px")
     .text(`${formatNumber(game.popularity)} user reviews`);
 
-  // TODO axis
-  detailArea.append("div")
+  var popularity_chart_container = detailArea.append("div")
+    .style("height", "20vh");
+
+    popularity_chart_container.append("div")
     .attr("id", "popularity_axis")
     .style("margin-top", "1em")
     .style("margin-bottom", "2em")
@@ -261,7 +306,7 @@ function drawDetailArea() {
     .style("float", "left");
 
   // Popularity Chart
-  detailArea.append("div")
+  popularity_chart_container.append("div")
     .attr("id", "popularity_barchart")
     .style("margin-top", "1em")
     .style("margin-bottom", "2em")
