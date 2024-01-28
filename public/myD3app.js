@@ -38,7 +38,7 @@ d3.csv("./public/steam-library1.csv", function(d) {
 })
   .then(function(csvData) {
     //store loaded data in global variable
-    data = csvData;
+    data = csvData.filter(d => d.userscore);
 
     //load map and initialise the views
     init();
@@ -185,6 +185,7 @@ function drawDetailArea() {
   detailArea.selectAll("*").remove();
   let game = data.find(game => game.id === selectedGameId);
 
+  // Headline
   detailArea.append("div")
     .attr("class", "headline")
     .attr("font-size", 30)
@@ -192,6 +193,7 @@ function drawDetailArea() {
     .style("fill", "white")
     .text(shortenString(game.name, maxHeadlineLength));
 
+  // Userscore Chart
   let userscore = detailArea.append("div")
     .attr("class", "range")
     .style("margin-left", "2em")
@@ -202,6 +204,7 @@ function drawDetailArea() {
     .attr("class", "range__label")
     .text("Userscore");
   
+  // Game Hours Label
   detailArea.append("div")
     .attr("class", "detail__label")
     .style("margin-left", "1.5em")
@@ -212,18 +215,29 @@ function drawDetailArea() {
     .attr("class", "detail__label")
     .style("margin-left", "2em")
     .style("font-size", "15px")
-    .text(`${game.hours}`)
+    .text(`${game.hours.toFixed(2)} hours`)
 
+  // TODO axis
   detailArea.append("div")
-    .attr("id", "barchart")
-    .style("margin-left", "1em")
+    .attr("id", "game_hours_axis")
     .style("margin-top", "1em")
+    .style("margin-bottom", "2em")
     .style("height", "20vh")
-    .style("width", "100%")
+    .style("width", "10%")
     .style("float", "left");
 
-  gameHours(barchart);
+  // Game Hours Chart
+  detailArea.append("div")
+    .attr("id", "game_hours_barchart")
+    .style("margin-top", "1em")
+    .style("margin-bottom", "2em")
+    .style("height", "20vh")
+    .style("width", "90%")
+    .style("float", "left");
 
+  gameHoursChart(game_hours_barchart);
+
+  // Popularity Label
   detailArea.append("div")
     .attr("class", "detail__label")
     .style("margin-left", "1.5em")
@@ -234,8 +248,29 @@ function drawDetailArea() {
     .attr("class", "detail__label")
     .style("margin-left", "2em")
     .style("font-size", "15px")
-    .text(`${game.popularity}`);
+    .text(`${game.popularity} user reviews`);
 
+  // TODO axis
+  detailArea.append("div")
+    .attr("id", "popularity_axis")
+    .style("margin-top", "1em")
+    .style("margin-bottom", "2em")
+    .style("height", "20vh")
+    .style("width", "10%")
+    .style("float", "left");
+
+  // Popularity Chart
+  detailArea.append("div")
+    .attr("id", "popularity_barchart")
+    .style("margin-top", "1em")
+    .style("margin-bottom", "2em")
+    .style("height", "20vh")
+    .style("width", "90%")
+    .style("float", "left");
+
+  popularityChart(popularity_barchart);
+
+  // Release Date Label
   detailArea.append("div")
     .attr("class", "detail__label")
     .style("margin-left", "1.5em")
@@ -249,24 +284,25 @@ function drawDetailArea() {
     .text(`${game.release_date}`);
 }
 
-function gameHours(barchart) {
+function gameHoursChart(barchart) {
   // Sort the data by hours played
   var sortedData = data.slice().sort((a, b) => b.hours - a.hours);
   
-  sortedData = sortedData.filter(x => x.hours > 5);
-  //sortedData = sortedData.filter(x => x.hours < 50);
+  sortedData = sortedData.filter(x => x.hours > 20);
+  sortedData = sortedData.filter(x => x.hours < 50);
 
   var highlight = true;
   if (!sortedData.some(obj => obj.name === chosenGameData.name)) {
     highlight = false;
   }
 
+  var lastGame = prevChosenGameData;
   if (highlight && !sortedData.some(obj => obj.name === prevChosenGameData.name)) {
-    prevChosenGameData = chosenGameData;
+    lastGame = chosenGameData;
   }
 
   sortedData.map((x, i) => {x.index = i; return x});
-  console.log(sortedData);
+  //console.log(sortedData);
 
   // Create a linear scale for the x-axis
   const xScale = d3.scaleLinear()
@@ -286,13 +322,8 @@ function gameHours(barchart) {
 
   // Create a linear gradient for the area
   const color = d3.scaleLinear()
-    .domain([0, d3.max(sortedData, (d) => d.hours)])
+    .domain([d3.min(sortedData, (d) => d.hours), d3.max(sortedData, (d) => d.hours)])
     .range(['black', 'yellow']);
-
-  // Create a linear gradient for the highlighted game
-  const highlightColor = d3.scaleLinear()
-    .domain([0, d3.max(sortedData, (d) => d.hours)])
-    .range(['red', 'orange']);
 
   // Create a path for the highlighted area
   const highlightArea = d3.area()
@@ -306,7 +337,7 @@ function gameHours(barchart) {
     .y(d => yScale(d.hours));
 
   // Wait for the SVG element to be created
-  var svg = d3.select("#barchart").append("svg")
+  var svg = d3.select("#game_hours_barchart").append("svg")
     .attr("width", barchart.offsetWidth)
     .attr("height", barchart.offsetHeight)
 
@@ -334,8 +365,7 @@ function gameHours(barchart) {
   if (highlight) {
     svg.append('path')
       .attr('class', 'highlight-area')
-      .attr('d', highlightArea([prevChosenGameData]))
-      .style('fill', d => highlightColor(prevChosenGameData.hours))
+      .attr('d', highlightArea([lastGame]))
       .attr('stroke-width', '3')
       .attr('stroke', 'blue')
       .transition()
@@ -347,14 +377,113 @@ function gameHours(barchart) {
   var line_chart = svg.append('path')
     .attr('class', 'line')
     .attr('d', line(sortedData))
-    .style('fill', '#767a83');
+    .style('fill', '#8A8A8A');
+
+  var val = line_chart.attr("d");
+  line_chart.attr("d", `${val}L${barchart.offsetWidth},0`)
+}
+
+function popularityChart(barchart) {
+  // Sort the data by popularity
+  var sortedData = data.slice().sort((a, b) => b.popularity - a.popularity);
+  
+  //sortedData = sortedData.filter(x => x.popularity > 20);
+  sortedData = sortedData.filter(x => x.popularity < 100_000);
+
+  var highlight = true;
+  if (!sortedData.some(obj => obj.name === chosenGameData.name)) {
+    highlight = false;
+  }
+
+  var lastGame = prevChosenGameData;
+  if (highlight && !sortedData.some(obj => obj.name === prevChosenGameData.name)) {
+    lastGame = chosenGameData;
+  }
+
+  sortedData.map((x, i) => {x.index = i; return x});
+  //console.log(sortedData);
+
+  // Create a linear scale for the x-axis
+  const xScale = d3.scaleLinear()
+    .domain([0, sortedData.length - 1])
+    .range([0, barchart.offsetWidth]);
+  
+  // Create a linear scale for the y-axis
+  const yScale = d3.scaleLinear()
+    .domain([0, d3.max(sortedData, (d) => d.popularity)])
+    .range([barchart.offsetHeight, 0]);
+
+  // Create an area generator
+  const areaGenerator = d3.area()
+    .x(d => xScale(d.index))
+    .y0(yScale(0))
+    .y1(d => yScale(d.popularity));
+
+  // Create a linear gradient for the area
+  const color = d3.scaleLinear()
+    .domain([d3.min(sortedData, (d) => d.popularity), d3.max(sortedData, (d) => d.popularity)])
+    .range(['black', 'yellow']);
+
+  // Create a path for the highlighted area
+  const highlightArea = d3.area()
+    .x(d => xScale(d.index))
+    .y0(yScale(0))
+    .y1(0);
+
+  // Create the line object
+  const line = d3.line()
+    .x(d => xScale(d.index))
+    .y(d => yScale(d.popularity));
+
+  // Wait for the SVG element to be created
+  var svg = d3.select("#popularity_barchart").append("svg")
+    .attr("width", barchart.offsetWidth)
+    .attr("height", barchart.offsetHeight)
+
+  // Create a linear gradient
+  var gradient = svg.append("defs")
+    .append("linearGradient")
+    .attr("id", "areaGradient");
+  
+  // Assuming your color scale is defined as 'color'
+  gradient.append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", color(sortedData[0].popularity));
+  
+  gradient.append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", color(sortedData[sortedData.length - 1].popularity));
+
+  // Create a shaded area under the line for each game
+  svg.append('path')
+    .attr('class', 'area')
+    .attr('d', areaGenerator(sortedData))
+    .style('fill', 'url(#areaGradient)');
+
+  // Create the highlighted area
+  if (highlight) {
+    svg.append('path')
+      .attr('class', 'highlight-area')
+      .attr('d', highlightArea([lastGame]))
+      .attr('stroke-width', '3')
+      .attr('stroke', 'blue')
+      .transition()
+        .duration(1000)
+        .attr('d', highlightArea([chosenGameData]))
+  }
+  
+  // Create the line chart
+  var line_chart = svg.append('path')
+    .attr('class', 'line')
+    .attr('d', line(sortedData))
+    .style('fill', '#8A8A8A');
 
   var val = line_chart.attr("d");
   line_chart.attr("d", `${val}L${barchart.offsetWidth},0`)
 }
 
 function gameClick(game) {
-  console.log(game.id)
+  //console.log(game.id)
   selectedGameId = game.id;
   prevChosenGameData = (chosenGameData) ? chosenGameData : game;
   chosenGameData = game;
