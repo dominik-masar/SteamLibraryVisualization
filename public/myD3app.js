@@ -248,7 +248,7 @@ function drawDetailArea() {
     .style("margin-top", "2em")
     .style("margin-right", "auto")
     .style("margin-left", "auto")
-    .style("height", "auto")
+    .style("height", "4vh")
     .style("width", "80%")
     .style("position", "relative")
     .style("float", "left");
