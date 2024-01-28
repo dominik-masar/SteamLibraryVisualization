@@ -9,10 +9,17 @@ body{
 }
 
 #button_div{
-    width:100%;
+    width:50%;
     height:10vh;
     /* border:1px solid green; */
     float:left;
+}
+
+#input_div{
+  width:50%;
+  height:10vh;
+  /* border:1px solid green; */
+  float:left;
 }
 
 #record_div{
@@ -71,6 +78,7 @@ body{
   text-transform: uppercase;
   color: #000;
   cursor: pointer;
+  background-color: buttonface;
   border: 3px solid;
   padding: 0.25em 0.5em;
   box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
@@ -86,15 +94,15 @@ body{
   left: 5px;
 }
 
-.button_normal {
+.button_normal, .button_div {
   font-family: "Open Sans", sans-serif;
   fill: #000;
   font-size: 16px;
   letter-spacing: 2px;
   text-decoration: none;
   text-transform: uppercase;
+  background-color: buttonface;
   color: #000;
-  cursor: pointer;
   border: 3px solid;
   padding: 0.25em 0.5em;
   box-shadow: 1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px;
@@ -102,6 +110,10 @@ body{
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
+}
+
+.button_normal {
+  cursor: pointer;
 }
 
 .button_clicked {

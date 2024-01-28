@@ -9,6 +9,7 @@ var data;
 
 //D3.js canvases
 var buttonArea;
+var inputArea;
 var recordArea;
 var detailArea;
 
@@ -57,6 +58,7 @@ function init() {
     
   //d3 canvases for svg elements
   buttonArea = d3.select("#button_div");
+  inputArea = d3.select("#input_div");
   recordArea = d3.select("#record_div");
   detailArea = d3.select("#detail_div");
 
@@ -71,8 +73,13 @@ function init() {
   labelWidth = (1 / 8) * detailArea.node().clientWidth;
 
   //width of one bar/column of the heatmap
-  barWidth = ((7 / 8) * detailArea.node().clientWidth) / data.length;
+  barWidth = ((7 / 8) * detailArea.node().clientWidth) / data.length;  
 
+  drawButtonArea();
+  drawInputArea();
+}
+
+function drawButtonArea() {
   buttonArea.append("button")
     .attr("class", "button_normal")
     .attr("id", "NameB")
@@ -100,58 +107,51 @@ function init() {
   buttonArea.append("button")
     .attr("class", "button_normal")
     .attr("id", "PopularityB")
-    //.style("transform", `scale(${1.5})`)
-    //.style("transform-origin", "top left")
     .text("Popularity")
     .on("click", function () { buttonClick("popularity", "PopularityB"); });
+}
 
-  buttonArea.append("input")
-    .attr("type", "file")
-    .attr("class", "button_normal")
-    .attr("id", "InputB")
+function drawInputArea() {
+  var fileInputContainer = inputArea.append("div")
+    .style("box-shadow", "1px 1px 0px 0px, 2px 2px 0px 0px, 3px 3px 0px 0px, 4px 4px 0px 0px, 5px 5px 0px 0px")
+    .style("border", "3px solid")
+    .style("height", "32px")
+    .style("width", "auto")
+    .style("color", "black")
     .style("float", "right")
+    .style("z-index", "2")
+    .style("display", "inline-block")
+    .style("position", "relative");
+
+  // Add the file input to the container
+  fileInputContainer.append("input")
+    .attr("type", "file")
+    .attr("class", "button_div")
+    .attr("id", "InputB")
+    .style("color", "transparent")
+    .style("width", "7.1em")
+    .style("margin", "0")  // Reset margin
+    .style("padding", "0")  // Reset padding
     .on("change", handleFile);
 
-  function handleFile() {
-    var input = d3.select("#InputB").node();
-    var file = input.files[0];
+  var importDiv = inputArea.append("div")
+    .attr("class", "button_div")
+    .attr("id", "importTip")
+    .style("float", "right")
+    .style("width", "auto")
+    .style("z-index", "1")
+    .style("position", "relative")
 
-    if (file) {
-      var reader = new FileReader();
+  importDiv.append("span")
+    .text("Export your data on ");
 
-      reader.onload = function (e) {
-        // 'e.target.result' contains the content of the file
-        var fileContent = e.target.result;
+  importDiv.append("a")
+    .attr("href", "https://www.lorenzostanco.com/lab/steam/")  // Replace with your desired URL
+    .attr("target", "_blank")  // Open the link in a new tab
+    .text("this web");
 
-        // Remove the BOM if present (UTF-8 with BOM)
-        if (fileContent.charCodeAt(0) === 0xFEFF) {
-          fileContent = fileContent.slice(1);
-        }
-          
-        // Parse the CSV content
-        var tempData = d3.csvParse(fileContent);
-        gameId = 0;
-
-        data = tempData.map((obj) =>
-          ({
-            name: obj["game"],
-            hours: +obj["hours"],
-            userscore: +obj["userscore"],
-            popularity: +obj["userscore_count"],
-            release_date: obj["release_date"],
-            id: gameId++,
-          })
-        );
-
-        detailArea.selectAll("*").remove();
-        resetButtons();
-        visualization();
-      };
-
-        // Read the file as text
-        reader.readAsText(file);
-    }
-  }
+  importDiv.append("span")
+    .text(" to CSV (use comma delimeter).");
 }
 
 /*----------------------
@@ -215,7 +215,7 @@ function drawDetailArea() {
     .attr("class", "detail__label")
     .style("margin-left", "2em")
     .style("font-size", "15px")
-    .text(`${game.hours.toFixed(2)} hours`)
+    .text(`${formatNumber(game.hours.toFixed(2))} hours`)
 
   // TODO axis
   detailArea.append("div")
@@ -232,7 +232,7 @@ function drawDetailArea() {
     .style("margin-top", "1em")
     .style("margin-bottom", "2em")
     .style("height", "20vh")
-    .style("width", "90%")
+    .style("width", "88%")
     .style("float", "left");
 
   gameHoursChart(game_hours_barchart);
@@ -248,7 +248,7 @@ function drawDetailArea() {
     .attr("class", "detail__label")
     .style("margin-left", "2em")
     .style("font-size", "15px")
-    .text(`${game.popularity} user reviews`);
+    .text(`${formatNumber(game.popularity)} user reviews`);
 
   // TODO axis
   detailArea.append("div")
@@ -265,7 +265,7 @@ function drawDetailArea() {
     .style("margin-top", "1em")
     .style("margin-bottom", "2em")
     .style("height", "20vh")
-    .style("width", "90%")
+    .style("width", "88%")
     .style("float", "left");
 
   popularityChart(popularity_barchart);
@@ -491,6 +491,24 @@ function gameClick(game) {
   drawDetailArea();
 }
 
+/*----------------------
+HELP FUNCTIONS
+----------------------*/
+function shortenString(string, maxLength) {
+  if (string.length > maxLength) {
+      return string.substring(0, maxLength - 3) + '...';
+  }
+  return string;
+}
+
+function sortData(method) {
+  data = data.sort((a, b) => d3.ascending(a.name.toLowerCase(), b.name.toLowerCase()));
+  if (method !== "name") {
+    data.sort((a, b) => d3.descending(a[method], b[method]));
+  }
+  drawTable();
+}
+
 function buttonClick(sortMethod, buttonId) {
   let button = d3.select(`#${buttonId}`);
   if (button.classed("button_clicked")) {
@@ -510,20 +528,59 @@ function resetButtons() {
   sortData("name");
 }
 
-/*----------------------
-HELP FUNCTIONS
-----------------------*/
-function shortenString(string, maxLength) {
-  if (string.length > maxLength) {
-      return string.substring(0, maxLength - 3) + '...';
-  }
-  return string;
+function formatNumber(input) {
+  const numberStr = String(input);
+
+  const parts = numberStr.split('.');
+  const integerPart = parts[0] ? parts[0] : '0';
+  const decimalPart = parts[1] ? `.${parts[1]}` : '';
+
+  const reversedInteger = integerPart.split('').reverse().join('');
+  const spacedInteger = reversedInteger.match(/.{1,3}/g).join(' ');
+  const formattedInteger = spacedInteger.split('').reverse().join('');
+
+  const result = `${formattedInteger}${decimalPart}`;
+
+  return result;
 }
 
-function sortData(method) {
-  data = data.sort((a, b) => d3.ascending(a.name.toLowerCase(), b.name.toLowerCase()));
-  if (method !== "name") {
-    data.sort((a, b) => d3.descending(a[method], b[method]));
+function handleFile() {
+  var input = d3.select("#InputB").node();
+  var file = input.files[0];
+
+  if (file) {
+    var reader = new FileReader();
+
+    reader.onload = function (e) {
+      // 'e.target.result' contains the content of the file
+      var fileContent = e.target.result;
+
+      // Remove the BOM if present (UTF-8 with BOM)
+      if (fileContent.charCodeAt(0) === 0xFEFF) {
+        fileContent = fileContent.slice(1);
+      }
+        
+      // Parse the CSV content
+      var tempData = d3.csvParse(fileContent);
+      gameId = 0;
+
+      data = tempData.map((obj) =>
+        ({
+          name: obj["game"],
+          hours: +obj["hours"],
+          userscore: +obj["userscore"],
+          popularity: +obj["userscore_count"],
+          release_date: obj["release_date"],
+          id: gameId++,
+        })
+      );
+
+      detailArea.selectAll("*").remove();
+      resetButtons();
+      visualization();
+    };
+
+      // Read the file as text
+      reader.readAsText(file);
   }
-  drawTable();
 }
