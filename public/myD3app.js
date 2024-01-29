@@ -11,6 +11,12 @@ var inputArea;
 var recordArea;
 var detailArea;
 
+//slider variables
+var gameSliderE;
+var gameSliderW;
+var popularitySliderW;
+var popularitySliderE;
+
 //variables for selection
 var selectedGameId = -1;
 var chosenGameData;
@@ -184,6 +190,10 @@ function drawTable() {
 DETAIL AREA
 ----------------------*/
 function drawDetailArea() {
+  gameSliderE = d3.max(data, (d) => d.hours);
+  gameSliderW = d3.min(data, (d) => d.hours);
+  popularitySliderE = d3.max(data, (d) => d.popularity);
+  popularitySliderW = d3.min(data, (d) => d.popularity);
 
   detailArea.selectAll("*").remove();
   let game = data.find(game => game.id === selectedGameId);
@@ -196,8 +206,18 @@ function drawDetailArea() {
     .style("fill", "white")
     .text(shortenString(game.name, maxHeadlineLength));
 
+  let userscore_release_cont = detailArea.append("div")
+    .style("width", "100%")
+    .style("height", "6em")
+    .style("display", "flex")
+    .style("justify-content", "center");
+
+  var userscore_cont = userscore_release_cont.append("div")
+    .style("width", "50%")
+    .style("height", "6em");
+
   // Userscore Chart
-  let userscore = detailArea.append("div")
+  let userscore = userscore_cont.append("div")
     .attr("class", "range")
     .style("margin-left", "2em")
     .style("margin-top", "3em")
@@ -206,6 +226,23 @@ function drawDetailArea() {
   userscore.append("div")
     .attr("class", "range__label")
     .text("Userscore");
+
+  var release_cont = userscore_release_cont.append("div")
+    .style("width", "50%")
+    .style("height", "6em");
+
+  // Release Date Label
+  release_cont.append("div")
+    .attr("class", "detail__label")
+    .style("margin-left", "1.5em")
+    .style("margin-top", "1em")
+    .text("Release date");
+
+  release_cont.append("div")
+    .attr("class", "detail__label")
+    .style("margin-left", "2em")
+    .style("font-size", "15px")
+    .text(`${game.release_date}`);
   
   // Game Hours Label
   detailArea.append("div")
@@ -223,17 +260,20 @@ function drawDetailArea() {
   var hours_chart_container = detailArea.append("div")
     .style("height", "20vh")
 
-  // TODO axis
-  hours_chart_container.append("div")
+  // hours axis
+  var game_hour_axis = hours_chart_container.append("div")
     .attr("id", "game_hours_axis")
     .style("margin-top", "1em")
     .style("margin-bottom", "2em")
     .style("height", "20vh")
     .style("width", "10%")
-    .style("float", "left");
+    .style("float", "left")
+    .style("display", "flex")
+    .style("flex-wrap", "wrap")
+    .style("align-content", "space-between");
 
   // Game Hours Chart
-  hours_chart_container.append("div")
+  var gameChart = hours_chart_container.append("div")
     .attr("id", "game_hours_barchart")
     .style("margin-top", "1em")
     .style("margin-bottom", "2em")
@@ -244,7 +284,7 @@ function drawDetailArea() {
   gameHoursChart(game_hours_barchart);
 
   detailArea.append("div")
-    .attr("id", "slider-range")
+    .attr("id", "hours-slider-range")
     .style("margin-top", "2em")
     .style("margin-right", "auto")
     .style("margin-left", "auto")
@@ -254,32 +294,35 @@ function drawDetailArea() {
     .style("float", "left");
 
   // Define the slider
-  const sliderRange = d3.sliderBottom()
-    .min(0)
-    .max(500)
+  const hoursSliderRange = d3.sliderBottom()
+    .min(gameSliderW)
+    .max(gameSliderE)
     .width(detailArea.node().offsetWidth * 0.83)
     .tickFormat((d) => d.toFixed(0))
-    .ticks(5)
-    .default([100, 200])
+    .ticks(10)
+    .default([gameSliderW, gameSliderE])
     .fill('yellow');
 
 
-  sliderRange.on('onchange', val => {
-    // TODO:
-    // assign global variables
-    // delete old svg
-    // call function to create new svg
+  hoursSliderRange.on('onchange', val => {
+    gameSliderW = val[0];
+    gameSliderE = val[1];
+
+    gameChart.selectAll("*").remove();
+    game_hour_axis.selectAll("*").remove();
+
+    gameHoursChart(game_hours_barchart);
   });
 
   // Add the slider to the DOM
-  const gRange = d3.select('#slider-range')
+  const gRangeHours = d3.select('#hours-slider-range')
     .append('svg')
     .attr('width', detailArea.node().offsetWidth * 0.9)
     .attr('height', 100)
     .append('g')
     .attr('transform', 'translate(20,20)');
 
-  gRange.call(sliderRange);
+  gRangeHours.call(hoursSliderRange);
 
   // Popularity Label
   detailArea.append("div")
@@ -297,16 +340,20 @@ function drawDetailArea() {
   var popularity_chart_container = detailArea.append("div")
     .style("height", "20vh");
 
-    popularity_chart_container.append("div")
+  // popularity axis
+  var popularity_axis = popularity_chart_container.append("div")
     .attr("id", "popularity_axis")
     .style("margin-top", "1em")
     .style("margin-bottom", "2em")
     .style("height", "20vh")
     .style("width", "10%")
-    .style("float", "left");
+    .style("float", "left")
+    .style("display", "flex")
+    .style("flex-wrap", "wrap")
+    .style("align-content", "space-between");
 
   // Popularity Chart
-  popularity_chart_container.append("div")
+  var popularity_chart = popularity_chart_container.append("div")
     .attr("id", "popularity_barchart")
     .style("margin-top", "1em")
     .style("margin-bottom", "2em")
@@ -316,26 +363,87 @@ function drawDetailArea() {
 
   popularityChart(popularity_barchart);
 
-  // Release Date Label
   detailArea.append("div")
-    .attr("class", "detail__label")
-    .style("margin-left", "1.5em")
-    .style("margin-top", "1em")
-    .text("Release date");
+    .attr("id", "popularity-slider-range")
+    .style("margin-top", "2em")
+    .style("margin-right", "auto")
+    .style("margin-left", "auto")
+    .style("height", "4vh")
+    .style("width", "80%")
+    .style("position", "relative")
+    .style("float", "left");
 
-  detailArea.append("div")
-    .attr("class", "detail__label")
-    .style("margin-left", "2em")
-    .style("font-size", "15px")
-    .text(`${game.release_date}`);
+  // Define the slider
+  const popularitySliderRange = d3.sliderBottom()
+    .min(popularitySliderW)
+    .max(popularitySliderE)
+    .width(detailArea.node().offsetWidth * 0.83)
+    .tickFormat((d) => d.toFixed(0))
+    .ticks(10)
+    .default([popularitySliderW, popularitySliderE])
+    .fill('yellow');
+
+  popularitySliderRange.on('onchange', val => {
+    popularitySliderW = val[0];
+    popularitySliderE = val[1];
+
+    popularity_chart.selectAll("*").remove();
+    popularity_axis.selectAll("*").remove();
+
+    popularityChart(popularity_barchart);
+  });
+
+  // Add the slider to the DOM
+  const gRangePopularity = d3.select('#popularity-slider-range')
+    .append('svg')
+    .attr('width', detailArea.node().offsetWidth * 0.9)
+    .attr('height', 100)
+    .append('g')
+    .attr('transform', 'translate(20,20)');
+
+  gRangePopularity.call(popularitySliderRange);
 }
 
 function gameHoursChart(barchart) {
   // Sort the data by hours played
   var sortedData = data.slice().sort((a, b) => b.hours - a.hours);
   
-  sortedData = sortedData.filter(x => x.hours > 20);
-  sortedData = sortedData.filter(x => x.hours < 50);
+  sortedData = sortedData.filter(x => gameSliderW <= x.hours && x.hours <= gameSliderE);
+
+  if (sortedData.length === 0) {
+    var cont = d3.select("#game_hours_barchart").append("div")
+      .style("width", "100%")
+      .style("height", "100%")
+      .style("display", "flex")
+      .style("justify-content", "center")
+      .style("align-items", "center")
+
+    cont.append("div")
+      .attr("class", "detail__label")
+      .style("text-align", "center")
+      .text("NO DATA!");
+
+    return;
+  }
+  if (sortedData.length === 1) {
+    sortedData.push({...sortedData[0]});
+  }
+
+  d3.select("#game_hours_axis").append("div")
+    .attr("class", "detail__label")
+    .style("width", "80%")
+    .style("font-size", "15px")
+    .style("margin-left", "1em")
+    .style("text-align", "end")
+    .text(formatNumber(d3.max(sortedData, (d) => d.hours).toFixed(2)));
+
+  d3.select("#game_hours_axis").append("div")
+    .attr("class", "detail__label")
+    .style("width", "80%")
+    .style("font-size", "15px")
+    .style("margin-left", "1em")
+    .style("text-align", "end")
+    .text(formatNumber(d3.min(sortedData, (d) => d.hours).toFixed(2)));
 
   var highlight = true;
   if (!sortedData.some(obj => obj.name === chosenGameData.name)) {
@@ -366,11 +474,6 @@ function gameHoursChart(barchart) {
     .y0(yScale(0))
     .y1(d => yScale(d.hours));
 
-  // Create a linear gradient for the area
-  const color = d3.scaleLinear()
-    .domain([d3.min(sortedData, (d) => d.hours), d3.max(sortedData, (d) => d.hours)])
-    .range(['black', 'yellow']);
-
   // Create a path for the highlighted area
   const highlightArea = d3.area()
     .x(d => xScale(d.index))
@@ -395,11 +498,11 @@ function gameHoursChart(barchart) {
   // Assuming your color scale is defined as 'color'
   gradient.append("stop")
     .attr("offset", "0%")
-    .attr("stop-color", color(sortedData[0].hours));
+    .attr("stop-color", 'yellow');
   
   gradient.append("stop")
     .attr("offset", "100%")
-    .attr("stop-color", color(sortedData[sortedData.length - 1].hours));
+    .attr("stop-color", 'black');
 
   // Create a shaded area under the line for each game
   svg.append('path')
@@ -432,9 +535,43 @@ function gameHoursChart(barchart) {
 function popularityChart(barchart) {
   // Sort the data by popularity
   var sortedData = data.slice().sort((a, b) => b.popularity - a.popularity);
-  
-  //sortedData = sortedData.filter(x => x.popularity > 20);
-  sortedData = sortedData.filter(x => x.popularity < 100_000);
+
+  sortedData = sortedData.filter(x => popularitySliderW <= x.popularity && x.popularity <= popularitySliderE);
+
+  if (sortedData.length === 0) {
+    var cont = d3.select("#popularity_barchart").append("div")
+      .style("width", "100%")
+      .style("height", "100%")
+      .style("display", "flex")
+      .style("justify-content", "center")
+      .style("align-items", "center")
+
+    cont.append("div")
+      .attr("class", "detail__label")
+      .style("text-align", "center")
+      .text("NO DATA!");
+
+    return;
+  }
+  if (sortedData.length === 1) {
+    sortedData.push({...sortedData[0]});
+  }
+
+  d3.select("#popularity_axis").append("div")
+    .attr("class", "detail__label")
+    .style("width", "80%")
+    .style("font-size", "12px")
+    .style("margin-left", "1em")
+    .style("text-align", "end")
+    .text(formatNumber(d3.max(sortedData, (d) => d.popularity)));
+
+  d3.select("#popularity_axis").append("div")
+    .attr("class", "detail__label")
+    .style("width", "80%")
+    .style("font-size", "12px")
+    .style("margin-left", "1em")
+    .style("text-align", "end")
+    .text(formatNumber(d3.min(sortedData, (d) => d.popularity)));
 
   var highlight = true;
   if (!sortedData.some(obj => obj.name === chosenGameData.name)) {
@@ -465,11 +602,6 @@ function popularityChart(barchart) {
     .y0(yScale(0))
     .y1(d => yScale(d.popularity));
 
-  // Create a linear gradient for the area
-  const color = d3.scaleLinear()
-    .domain([d3.min(sortedData, (d) => d.popularity), d3.max(sortedData, (d) => d.popularity)])
-    .range(['black', 'yellow']);
-
   // Create a path for the highlighted area
   const highlightArea = d3.area()
     .x(d => xScale(d.index))
@@ -494,11 +626,11 @@ function popularityChart(barchart) {
   // Assuming your color scale is defined as 'color'
   gradient.append("stop")
     .attr("offset", "0%")
-    .attr("stop-color", color(sortedData[0].popularity));
+    .attr("stop-color", 'yellow');
   
   gradient.append("stop")
     .attr("offset", "100%")
-    .attr("stop-color", color(sortedData[sortedData.length - 1].popularity));
+    .attr("stop-color", 'black');
 
   // Create a shaded area under the line for each game
   svg.append('path')
