@@ -701,8 +701,8 @@ function buttonClick(sortMethod, buttonId) {
 }
 
 function resetButtons() {
-  buttonArea.selectAll("div > *").classed("button_clicked", false);
-  buttonArea.selectAll("div > *").classed("button_normal", true);
+  buttonArea.selectAll("div > button").classed("button_clicked", false);
+  buttonArea.selectAll("div > button").classed("button_normal", true);
   sortData("name");
 }
 
